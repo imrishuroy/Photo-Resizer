@@ -1,9 +1,14 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-main() {
+main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
   runApp(MyApp());
 }
 
@@ -25,18 +30,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  XFile? _imageFile;
   File? _image;
+
+  final CollectionReference _photosRef =
+      FirebaseFirestore.instance.collection('photos');
 
   _getImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _imageFile = image;
         _image = File(image.path);
       });
     }
+  }
+
+  Future<void> _upload() async {
+    await _photosRef.add({'data': 'Image Added'});
   }
 
   @override
@@ -64,8 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10)),
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 height: 250.0,
                 width: 250.0,
 
@@ -91,7 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: 40.0),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              _upload();
+            },
             child: Text('Resize Image'),
           ),
           // Image.file(File(_imageFile!.path))
